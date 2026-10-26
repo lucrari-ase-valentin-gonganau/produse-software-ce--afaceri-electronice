@@ -1,0 +1,5 @@
+# Doar local (docker compose il incarca automat): magazinul pe http://localhost:8080
+services:
+  prestashop:
+    ports:
+      - "8080:80"

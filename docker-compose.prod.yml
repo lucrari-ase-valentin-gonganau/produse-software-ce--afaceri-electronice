@@ -1,0 +1,22 @@
+# Doar pe VPS (folosit de deploy.sh). Fara porturi publicate: Caddy (din apps-network)
+# trimite domeniul catre containerul "presta-shop" si se ocupa de HTTPS.
+services:
+  db:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  prestashop:
+    container_name: presta-shop
+    networks:
+      - default
+      - apps-network
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+networks:
+  apps-network:
+    external: true

@@ -3,10 +3,12 @@ services:
     image: mariadb:10.11
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: root_local_2026
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWD:-root_local_2026}
       MARIADB_DATABASE: prestashop
       MARIADB_USER: ps
-      MARIADB_PASSWORD: ps_local_2026
+      MARIADB_PASSWORD: ${DB_PASSWD:-ps_local_2026}
+    # memorie mica: pe VPS ruleaza si alte aplicatii
+    command: --innodb-buffer-pool-size=128M
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -16,25 +18,27 @@ services:
       retries: 10
 
   prestashop:
-    image: prestashop/prestashop:8-apache
+    # imaginea proprie: PrestaShop 8 + produsele generate de build_seed.py (vezi Dockerfile)
+    build: .
+    image: presta-shop-ae:latest
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8080:80"
     environment:
       DB_SERVER: db
       DB_NAME: prestashop
       DB_USER: ps
-      DB_PASSWD: ps_local_2026
+      DB_PASSWD: ${DB_PASSWD:-ps_local_2026}
       PS_INSTALL_AUTO: 1
-      PS_DOMAIN: localhost:8080
+      PS_DOMAIN: ${PS_DOMAIN:-localhost:8080}
+      PS_ENABLE_SSL: ${PS_ENABLE_SSL:-0}
+      PS_SHOP_NAME: ${PS_SHOP_NAME:-}
       PS_LANGUAGE: ro
       PS_COUNTRY: RO
       PS_FOLDER_ADMIN: admin-ae
-      ADMIN_MAIL: admin@example.com
-      ADMIN_PASSWD: Admin_local_2026
+      ADMIN_MAIL: ${ADMIN_MAIL:-admin@example.com}
+      ADMIN_PASSWD: ${ADMIN_PASSWD:-Admin_local_2026}
       PS_DEV_MODE: 0
     volumes:
       - ps_data:/var/www/html
