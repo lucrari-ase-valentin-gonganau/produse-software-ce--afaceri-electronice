@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root_local_2026
+      MARIADB_DATABASE: prestashop
+      MARIADB_USER: ps
+      MARIADB_PASSWORD: ps_local_2026
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  prestashop:
+    image: prestashop/prestashop:8-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      DB_SERVER: db
+      DB_NAME: prestashop
+      DB_USER: ps
+      DB_PASSWD: ps_local_2026
+      PS_INSTALL_AUTO: 1
+      PS_DOMAIN: localhost:8080
+      PS_LANGUAGE: ro
+      PS_COUNTRY: RO
+      PS_FOLDER_ADMIN: admin-ae
+      ADMIN_MAIL: admin@example.com
+      ADMIN_PASSWD: Admin_local_2026
+      PS_DEV_MODE: 0
+    volumes:
+      - ps_data:/var/www/html
+
+volumes:
+  db_data:
+  ps_data:
