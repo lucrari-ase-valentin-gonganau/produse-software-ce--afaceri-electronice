@@ -15,6 +15,11 @@ if [ -f ./install.lock ]; then
     exit 0
 fi
 
+# modulul propriu: versiunea din imagine o inlocuieste pe cea din volum (sync.php il instaleaza)
+rm -rf ./modules/aehardware
+cp -R /seed/modules/aehardware ./modules/aehardware
+chown -R www-data:www-data ./modules/aehardware
+
 echo "\n* [sync] Aplic configurarile si produsele..."
 if runuser -u www-data -- php -d memory_limit=512M /seed/sync.php; then
     echo "\n* [sync] Gata"

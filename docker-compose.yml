@@ -33,7 +33,8 @@ services:
       PS_INSTALL_AUTO: 1
       PS_DOMAIN: ${PS_DOMAIN:-localhost:8080}
       PS_ENABLE_SSL: ${PS_ENABLE_SSL:-0}
-      PS_SHOP_NAME: ${PS_SHOP_NAME:-}
+      # acelasi nume ca in logo (MAGAZIN din build_seed.py)
+      PS_SHOP_NAME: ${PS_SHOP_NAME:-AE Hardware}
       PS_LANGUAGE: ro
       PS_COUNTRY: RO
       PS_FOLDER_ADMIN: admin-ae
