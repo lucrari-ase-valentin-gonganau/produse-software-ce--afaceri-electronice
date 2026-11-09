@@ -15,10 +15,12 @@ if [ -f ./install.lock ]; then
     exit 0
 fi
 
-# modulul propriu: versiunea din imagine o inlocuieste pe cea din volum (sync.php il instaleaza)
-rm -rf ./modules/aehardware
-cp -R /seed/modules/aehardware ./modules/aehardware
-chown -R www-data:www-data ./modules/aehardware
+# modulele proprii: versiunea din imagine o inlocuieste pe cea din volum (sync.php le instaleaza)
+for module in aehardware aeplatacard; do
+    rm -rf "./modules/$module"
+    cp -R "/seed/modules/$module" "./modules/$module"
+    chown -R www-data:www-data "./modules/$module"
+done
 
 echo "\n* [sync] Aplic configurarile si produsele..."
 if runuser -u www-data -- php -d memory_limit=512M /seed/sync.php; then

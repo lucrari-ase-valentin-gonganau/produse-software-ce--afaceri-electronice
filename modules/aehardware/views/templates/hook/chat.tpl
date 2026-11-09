@@ -14,6 +14,7 @@
     </header>
     <div class="ae-chat__messages" aria-live="polite"></div>
     <div class="ae-chat__suggestions">
+      <button type="button">Vreau un PC pe care sa rulez un joc</button>
       <button type="button">Ce placi de baza merg cu AMD Ryzen 5 7600?</button>
       <button type="button">Recomanda-mi o placa video sub 2500 lei</button>
       <button type="button">Ce sursa imi trebuie pentru i7-14700K si RTX 5070?</button>

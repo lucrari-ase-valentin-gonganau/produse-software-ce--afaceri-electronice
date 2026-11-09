@@ -5,7 +5,8 @@
  */
 class AehardwareChatModuleFrontController extends ModuleFrontController
 {
-    const MAX_MESSAGES = 12;
+    /** cate mesaje din conversatie primeste modelul (destule ca sa tina minte jocul, bugetul etc.) */
+    const MAX_MESSAGES = 30;
 
     const MAX_LENGTH = 1000;
 
@@ -39,14 +40,24 @@ class AehardwareChatModuleFrontController extends ModuleFrontController
         }
 
         try {
-            $reply = $this->module->chatbot()->reply($history, $this->module->systemPrompt());
+            $chatbot = $this->module->chatbot();
+            $reply = $chatbot->reply($history, $this->module->systemPrompt());
         } catch (Exception $e) {
             // detaliile (ex. cheie gresita) apar in Admin > Parametri avansati > Jurnale
             PrestaShopLogger::addLog('[aehardware] chatbot: ' . $e->getMessage(), 3);
             $this->json(['error' => 'Asistentul nu poate raspunde acum. Incearca din nou mai tarziu.'], 502);
         }
 
-        $this->json(['reply' => $reply !== '' ? $reply : 'Nu am gasit un raspuns. Poti reformula intrebarea?']);
+        $response = ['reply' => $reply !== '' ? $reply : 'Nu am gasit un raspuns. Poti reformula intrebarea?'];
+        // configuratia verificata: pagina o afiseaza ca un card, cu butonul de cos
+        if ($build = $this->module->buildCard($chatbot)) {
+            $response['build'] = $build;
+        }
+        // produsele cerute cu adauga_in_cos: le adauga pagina, prin controllerul standard al cosului
+        if ($this->module->cartProducts) {
+            $response['cart'] = array_values($this->module->cartProducts);
+        }
+        $this->json($response);
     }
 
     private function json($data, $status = 200)

@@ -143,6 +143,134 @@
   color: #1c8aa3;
 }
 
+/* bara de pasi: pe ecrane inguste trece pe mai multe randuri (fara scroll orizontal) */
+.ae-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  list-style: none;
+}
+.ae-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem 0.3rem 0.3rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.ae-steps__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #e5e7eb;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+.ae-steps__item.is-done .ae-steps__number {
+  background: #2e7d32;
+  color: #fff;
+}
+.ae-steps__item.is-current {
+  border-color: #24b9d7;
+  background: #e8f7fb;
+  font-weight: 600;
+}
+.ae-steps__item.is-current .ae-steps__number {
+  background: #24b9d7;
+  color: #fff;
+}
+.ae-slot__step {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* filtrele unui pas */
+.ae-filters {
+  display: grid;
+  /* 8rem: doua coloane si pe telefon */
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem 0.75rem;
+  align-items: end;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+.ae-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  /* tema aliniaza etichetele formularelor la dreapta */
+  text-align: left;
+}
+.ae-filter select,
+.ae-filter input[type="search"] {
+  /* inaltimea fixa din tema taia textul selecturilor mici */
+  height: auto;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.ae-filter--search {
+  grid-column: 1 / -1;
+}
+.ae-filter--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  color: #374151;
+}
+.ae-results__count {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+.ae-results__count .btn-link {
+  padding: 0 0 0 0.5rem;
+  font-size: 0.85rem;
+  vertical-align: baseline;
+}
+.ae-step__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+.ae-review {
+  padding: 0 1rem;
+  margin: 0;
+  list-style: none;
+}
+.ae-review li {
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+.ae-review .ae-summary__label {
+  display: block;
+}
+.ae-review .btn-link {
+  padding: 0;
+  font-size: 0.8rem;
+}
+.ae-review + .ae-summary__total,
+.ae-slot .alert,
+.ae-slot .ae-summary__missing {
+  margin: 0.5rem 1rem;
+}
+
 .ae-option {
   display: flex;
   align-items: center;
@@ -379,6 +507,46 @@
   background: #24b9d7;
   color: #fff;
   border-bottom-right-radius: 0.2rem;
+}
+/* cardul configuratiei verificate din chat */
+.ae-build {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  font-size: 0.85rem;
+}
+.ae-build__title {
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+.ae-msg .ae-build__list {
+  padding-left: 0;
+  list-style: none;
+}
+.ae-build__list li {
+  padding: 0.2rem 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+.ae-build__label {
+  display: block;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+.ae-build__price {
+  white-space: nowrap;
+  font-weight: 600;
+}
+.ae-build__total {
+  margin: 0.4rem 0;
+}
+.ae-build__warning {
+  margin-bottom: 0.3rem;
+  color: #b91c1c;
+}
+.ae-build__cart {
+  width: 100%;
 }
 .ae-msg--error {
   border-color: #f5c2c2;

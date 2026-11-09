@@ -142,6 +142,22 @@ class AeMcpServer
                 'annotations' => ['readOnlyHint' => true],
             ],
             [
+                'name' => 'completeaza_configuratie',
+                'title' => 'Completeaza o configuratie de PC',
+                'description' => 'Primeste componentele alese deja (ex. procesorul si placa video) si completeaza intr-un singur apel '
+                    . 'componentele lipsa cu cele mai ieftine produse compatibile aflate in stoc (sursa dimensionata dupa consum). '
+                    . 'Intoarce configuratia completa verificata: componente, compatibilitate, stoc, pret total, consum.',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'referinte' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Referintele componentelor alese, ex. ["AE-CPU-009", "AE-GPU-001"]'],
+                        'buget' => ['type' => 'number', 'description' => 'Bugetul clientului, in lei (optional): rezultatul spune cat ramane sau cat lipseste'],
+                    ],
+                    'required' => ['referinte'],
+                ],
+                'annotations' => ['readOnlyHint' => true],
+            ],
+            [
                 'name' => 'verifica_configuratie',
                 'title' => 'Verifica o configuratie de PC',
                 'description' => 'Verifica daca mai multe componente (referinte) sunt compatibile intre ele si calculeaza pretul total, '
@@ -150,6 +166,7 @@ class AeMcpServer
                     'type' => 'object',
                     'properties' => [
                         'referinte' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Referintele produselor, ex. ["AE-CPU-001", "AE-MB-001"]'],
+                        'buget' => ['type' => 'number', 'description' => 'Bugetul clientului, in lei (optional): rezultatul spune cat ramane sau cat lipseste'],
                     ],
                     'required' => ['referinte'],
                 ],
@@ -175,6 +192,9 @@ class AeMcpServer
                 case 'produse_compatibile':
                     $data = $this->compatible($args);
                     break;
+                case 'completeaza_configuratie':
+                    $data = $this->completeBuild($args);
+                    break;
                 default:
                     $data = $this->checkBuild($args);
             }
@@ -197,11 +217,18 @@ class AeMcpServer
         }
         $products = $this->catalog->products($filters);
 
-        return [
+        $data = [
             'gasite' => count($products),
             'afisate' => min($limit, count($products)),
             'produse' => array_map([$this, 'compact'], array_slice($products, 0, $limit)),
         ];
+        // modelele scriu des text descriptiv ("placa video") pe langa categorie: toate cuvintele trebuie sa apara
+        if (!$products && !empty($filters['text'])) {
+            $data['indiciu'] = 'Toate cuvintele din text trebuie sa apara in nume, marca sau caracteristici. '
+                . 'Cauta fara text (doar cu categoria) sau cu un singur cuvant precis (ex. "RTX", "AM5", "DDR5").';
+        }
+
+        return $data;
     }
 
     private function details(array $args)
@@ -223,16 +250,27 @@ class AeMcpServer
         }
         $selection = $this->selectionFromReferences(array_values(is_array($args['selectie'] ?? null) ? $args['selectie'] : []));
         $result = $this->compatibility->candidates($slot, $selection);
+        $inStock = count(array_filter($result['compatibile'], function ($product) {
+            return $product['stoc'] > 0;
+        }));
 
-        return [
+        $data = [
             'componenta' => $slot,
             'componente_alese' => array_map(function ($product) {
                 return $product['referinta'] . ' ' . $product['nume'];
             }, $selection),
             'conditii' => $result['conditii'],
             'compatibile' => array_map([$this, 'compact'], $result['compatibile']),
+            'compatibile_in_stoc' => $inStock,
             'incompatibile_ascunse' => $result['incompatibile'],
         ];
+        // ex. un procesor AM4 in stoc, dar singura placa AM4 epuizata: configuratia nu se poate termina cu el
+        if ($selection && !$inStock) {
+            $data['atentie'] = 'Niciun produs compatibil nu este in stoc. Inlocuieste una dintre componentele alese '
+                . '(ex. alt procesor), altfel configuratia nu se poate termina.';
+        }
+
+        return $data;
     }
 
     private function checkBuild(array $args)
@@ -241,17 +279,110 @@ class AeMcpServer
         if (!$references) {
             throw new InvalidArgumentException('Da cel putin o referinta de produs.');
         }
-        $summary = $this->compatibility->summary($this->selectionFromReferences($references));
+
+        return $this->report($this->selectionFromReferences($references), $args['buget'] ?? null);
+    }
+
+    /**
+     * Completeaza o configuratie dintr-un singur apel (asistentul nu mai cauta componentele pe rand):
+     * pentru fiecare componenta lipsa, in ordinea din configurator (sursa spre final, cand se stie consumul),
+     * alege cel mai ieftin produs compatibil aflat in stoc.
+     */
+    private function completeBuild(array $args)
+    {
+        $references = is_array($args['referinte'] ?? null) ? $args['referinte'] : [];
+        $selection = $this->selectionFromReferences($references);
+        $given = $selection;
+        $added = [];
+        $noStock = [];
+        foreach (array_keys(AeCompatibility::SLOTS) as $slot) {
+            if (isset($selection[$slot])) {
+                continue;
+            }
+            // candidates() le intoarce ordonate dupa pret
+            $inStock = array_filter($this->compatibility->candidates($slot, $selection)['compatibile'], function ($product) {
+                return $product['stoc'] > 0;
+            });
+            if ($inStock) {
+                $selection[$slot] = reset($inStock);
+                $added[] = $slot;
+            } else {
+                $noStock[] = $slot;
+            }
+        }
+
+        $data = ['completate_automat' => $added] + $this->report($selection, $args['buget'] ?? null);
+        if ($noStock) {
+            $data['atentie'] = 'Pentru ' . implode(', ', $noStock) . ' nu exista niciun produs compatibil in stoc cu '
+                . 'componentele date. Inlocuieste una dintre ele si apeleaza din nou.';
+            $replacement = $this->suggestReplacement($given, $noStock[0]);
+            if ($replacement) {
+                list($slot, $product) = $replacement;
+                $data['atentie'] .= " Sugestie: inlocuieste $slot cu {$product['referinta']} {$product['nume']} "
+                    . "({$product['pret_text']}), cel mai ieftin cu care exista $noStock[0] in stoc.";
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Cand pentru o componenta lipsa nu exista nimic in stoc (ex. procesor AM4, singura placa AM4 epuizata),
+     * cauta cel mai ieftin inlocuitor in stoc pentru una dintre componentele date, cu care lipsa se rezolva.
+     *
+     * @return array|null [componenta, produs]
+     */
+    private function suggestReplacement(array $given, $missingSlot)
+    {
+        foreach ($given as $slot => $product) {
+            $others = $given;
+            unset($others[$slot]);
+            foreach ($this->compatibility->candidates($slot, $others)['compatibile'] as $alternative) {
+                if ($alternative['stoc'] <= 0 || $alternative['id'] === $product['id']) {
+                    continue;
+                }
+                foreach ($this->compatibility->candidates($missingSlot, [$slot => $alternative] + $others)['compatibile'] as $candidate) {
+                    if ($candidate['stoc'] > 0) {
+                        return [$slot, $alternative];
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** verificarea unei configuratii: compatibilitate, stoc, total, consum si, cu buget, cat ramane / lipseste */
+    private function report(array $selection, $budget = null)
+    {
+        $summary = $this->compatibility->summary($selection);
+        $outOfStock = array_values(array_map(function ($product) {
+            return $product['nume'];
+        }, array_filter($selection, function ($product) {
+            return $product['stoc'] <= 0;
+        })));
+        $budgetInfo = [];
+        if (is_numeric($budget) && $budget > 0) {
+            $difference = (float) $budget - $summary['total'];
+            $budgetInfo = ['buget' => $this->catalog->formatPrice((float) $budget)]
+                + ($difference >= 0
+                    ? ['ramane_din_buget' => $this->catalog->formatPrice($difference)]
+                    : ['lipseste_fata_de_buget' => $this->catalog->formatPrice(-$difference)]);
+        }
         foreach ($summary['componente'] as &$item) {
             $item['produs'] = $this->compact($item['produs']);
         }
 
         return [
+            // completa = se poate cumpara asa: toate cele 7 componente, compatibile, in stoc
+            'completa' => !$summary['probleme'] && !$summary['lipsa'] && !$outOfStock,
             'compatibila' => !$summary['probleme'],
             'probleme' => $summary['probleme'],
             'componente' => $summary['componente'],
             'componente_lipsa' => $summary['lipsa'],
+            'fara_stoc' => $outOfStock,
             'total' => $summary['total_text'],
+        ] + $budgetInfo + [
             'consum_pe_componente' => array_map(function ($row) {
                 return ['componenta' => $row['eticheta'], 'produs' => $row['produs'], 'consum_w' => $row['w']];
             }, $summary['consum_componente']),
@@ -284,6 +415,7 @@ class AeMcpServer
     private function compact(array $product)
     {
         return [
+            'id' => $product['id'],
             'referinta' => $product['referinta'],
             'nume' => $product['nume'],
             'categorie' => $product['categorie'],

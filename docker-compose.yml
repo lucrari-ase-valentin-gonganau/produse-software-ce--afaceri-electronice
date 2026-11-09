@@ -41,6 +41,11 @@ services:
       ADMIN_MAIL: ${ADMIN_MAIL:-admin@example.com}
       ADMIN_PASSWD: ${ADMIN_PASSWD:-Admin_local_2026}
       PS_DEV_MODE: 0
+      # chatbotul (modulul aehardware): goale = se folosesc setarile din admin
+      AE_CHAT_API_KEY: ${AE_CHAT_API_KEY:-}
+      AE_CHAT_API_URL: ${AE_CHAT_API_URL:-}
+      AE_CHAT_MODEL: ${AE_CHAT_MODEL:-}
+      AE_CHAT_SEARCH_MODEL: ${AE_CHAT_SEARCH_MODEL:-}
     volumes:
       - ps_data:/var/www/html
 

@@ -15,5 +15,7 @@ COPY --from=seed /seed /seed
 COPY docker/sync.php docker/continut.php /seed/
 # modulul propriu (configurator PC, server MCP, chatbot); 10-sync.sh il copiaza in modules/ la pornire
 COPY modules/aehardware /seed/modules/aehardware
+# plata online cu cardul, cu procesator simulat (Platit / Neplatit)
+COPY modules/aeplatacard /seed/modules/aeplatacard
 # init-scripts ruleaza la fiecare pornire a containerului, dupa instalare
 COPY --chmod=755 docker/10-sync.sh /tmp/init-scripts/10-sync.sh

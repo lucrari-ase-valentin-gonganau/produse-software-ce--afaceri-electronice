@@ -10,7 +10,7 @@
  *  5. sterge produsele si categoriile demo
  *  6. arborele de categorii din /seed/categorii.csv, cu descrieri si imagini
  *  7. produsele din /seed/produse.csv (dupa "Reference #"), cu imagini din /seed/seed-img
- *  8. modulul aehardware (configurator PC, server MCP, chatbot) + meniul de sus
+ *  8. modulele aehardware (configurator PC, server MCP, chatbot) si aeplatacard (plata cu cardul) + meniul de sus
  *  9. logo, favicon, pagina principala, subsolul si paginile CMS in romana (/seed/continut.php)
  */
 
@@ -431,6 +431,20 @@ if (!Module::isInstalled('aehardware')) {
     out('modulul aehardware instalat');
 } elseif (!$aeModule->ensureInstalled()) {
     fail('nu am putut actualiza modulul aehardware');
+}
+
+// plata online cu cardul (procesator simulat), copiat tot de 10-sync.sh
+$cardModule = Module::getInstanceByName('aeplatacard');
+if (!$cardModule) {
+    fail('lipseste modules/aeplatacard');
+}
+if (!Module::isInstalled('aeplatacard')) {
+    if (!$cardModule->install()) {
+        fail('nu am putut instala modulul aeplatacard: ' . implode(', ', $cardModule->getErrors()));
+    }
+    out('modulul aeplatacard instalat (plata cu cardul)');
+} elseif (!$cardModule->ensureInstalled()) {
+    fail('nu am putut actualiza modulul aeplatacard');
 }
 
 $content = require SEED_DIR . '/continut.php';

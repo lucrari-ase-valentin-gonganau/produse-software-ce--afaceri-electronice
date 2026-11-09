@@ -337,6 +337,10 @@ def draw_banner(path):
     tiles(d, ["cpu", "gpu", "ram"], tiles_x, (H - size) // 2, size, gap, color)
     im.save(path, "PNG", optimize=True)
 
+# garantia standard, aceeasi la toate produsele: caracteristica "Garantie" + randul din descriere
+# (fara "," si ":", care despart caracteristicile in CSV); vezi si docker/continut.php (Termeni si conditii)
+GARANTIE = "24 luni persoane fizice / 12 luni persoane juridice"
+
 random.seed(2026)
 rows = []
 counters = {}
@@ -348,8 +352,10 @@ for cat, brand, name, price_tin, feats in P:
     cale = cale_categorie(cat, brand, name, feats)
     leaf = cale[-1]
     draw_image(os.path.join(IMG_DIR, fname), cat, brand, name, feats, desen_produs(cat, feats), culoare(cale))
-    feat_str = ",".join(f"{fn}:{fv}:{i+1}" for i, (fn, fv) in enumerate(zip(fnames, feats)))
-    spec_li = "".join(f"<li><strong>{fn}:</strong> {fv}</li>" for fn, fv in zip(fnames, feats))
+    # garantia nu apare in imagine si in rezumat (acolo sunt doar specificatiile tehnice)
+    feat_names, feat_values = fnames + ["Garantie"], feats + [GARANTIE]
+    feat_str = ",".join(f"{fn}:{fv}:{i+1}" for i, (fn, fv) in enumerate(zip(feat_names, feat_values)))
+    spec_li = "".join(f"<li><strong>{fn}:</strong> {fv}</li>" for fn, fv in zip(feat_names, feat_values))
     summary = "<p>" + " | ".join(f"{fn}: {fv}" for fn, fv in zip(fnames, feats)) + "</p>"
     desc = (f"<p>{name}, produs din categoria {leaf}, marca {brand}.</p>"
             f"<ul>{spec_li}</ul>"

@@ -138,7 +138,7 @@ si stocurile sunt fictive si sunt folosite doar pentru testarea platformei Prest
 <h3>2. Preturi</h3>
 <p>Preturile sunt afisate in lei si includ TVA de 21%.</p>
 <h3>3. Garantie</h3>
-<p>Componentele hardware au garantie de 24 de luni pentru persoane fizice, conform legii.</p>',
+<p>Toate produsele au garantie standard: 24 de luni pentru persoane fizice si 12 luni pentru persoane juridice.</p>',
 
         4 => '<h2>Despre noi</h2>
 <p>Suntem un magazin online demonstrativ de componente hardware si echipamente IT.</p>
@@ -151,7 +151,7 @@ memorii DDR4 si DDR5, SSD-uri NVMe si SATA si altele), ca sa gasesti rapid piese
 </ul>',
 
         5 => '<h2>Plati securizate</h2>
-<p>Poti plati prin transfer bancar. Datele tale sunt transmise criptat, prin conexiune HTTPS.</p>
+<p>Poti plati prin transfer bancar sau online cu cardul. Datele tale sunt transmise criptat, prin conexiune HTTPS.</p>
 <p>Fiind un magazin demonstrativ, nu se efectueaza plati reale.</p>',
     ],
 ];

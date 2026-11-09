@@ -5,7 +5,8 @@
 {block name='page_content'}
   <div id="ae-builder" class="ae-builder" data-url="{$ae_builder_url|escape:'html':'UTF-8'}" data-start="{$ae_start|intval}">
     <p class="ae-builder__intro">
-      Alege componentele in orice ordine. La fiecare pas vezi <strong>doar produsele compatibile</strong> cu ce ai ales deja:
+      Alege componentele pas cu pas (sau sari direct la orice pas din bara de mai jos) si restrange lista cu filtrele:
+      marca, pret, caracteristici. La fiecare pas vezi <strong>doar produsele compatibile</strong> cu ce ai ales deja:
       socket-ul procesorului si al placii de baza, tipul memoriei (DDR4 sau DDR5), formatul placii si al carcasei
       si puterea sursei, calculata din consumul fiecarei componente alese (plus 30% rezerva).
     </p>
